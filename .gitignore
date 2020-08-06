@@ -1,0 +1,7 @@
+out/
+local/
+local_test/
+sandbox/
+.idea/
+.gradle/
+build/
