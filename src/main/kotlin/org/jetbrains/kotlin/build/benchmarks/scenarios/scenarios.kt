@@ -1,16 +1,25 @@
+@file:JvmName("ScenariosKt")
+
 package org.jetbrains.kotlin.build.benchmarks.scenarios
 
 import org.jetbrains.kotlin.build.benchmarks.dsl.Tasks
 import org.jetbrains.kotlin.build.benchmarks.dsl.TypeOfChange
 import org.jetbrains.kotlin.build.benchmarks.dsl.suite
 
-fun fastBenchmarks(vararg defaultTasksToRun: Tasks) =
-    allBenchmarks(*defaultTasksToRun).let { suite ->
+fun fastBenchmarks(projectName: String, vararg defaultTasksToRun: Tasks) =
+    allBenchmarks(projectName, *defaultTasksToRun).let { suite ->
         suite.copy(scenarios = suite.scenarios.filter { scenario -> scenario.expectedSlowBuildReason == null }.toTypedArray())
     }
 
+fun allBenchmarks(projectName: String, vararg defaultTasksToRun: Tasks) =
+        mapOf(
+            "kotlin" to {
+                kotlinBenchmarks(*defaultTasksToRun)
+            }
+    )[projectName]?.let { it() } ?: throw IllegalStateException("Test suit for $projectName is not defined!")
 
-fun allBenchmarks(vararg defaultTasksToRun: Tasks) =
+
+fun kotlinBenchmarks(vararg defaultTasksToRun: Tasks) =
     suite("kotlin") {
         val coreUtilStrings = changeableFile("coreUtil/StringsKt")
         val coreUtilCoreLib = changeableFile("coreUtil/CoreLibKt")
