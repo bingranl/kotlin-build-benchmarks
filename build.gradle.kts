@@ -7,11 +7,16 @@ plugins {
 }
 
 buildscript {
-    val kotlinVersion = System.getenv("BOOTSTRAP_VERSION") ?: "1.4.255-SNAPSHOT"
+    val kotlinVersion = System.getenv("BOOTSTRAP_VERSION") ?: "1.4.20-dev-2975"
     extra["kotlinVersion"] = kotlinVersion
+    val bootstrapRepo = "https://buildserver.labs.intellij.net/guestAuth/app/rest/builds/buildType:(id:Kotlin_KotlinDev_CompilerDistAndMavenArtifacts),number:$kotlinVersion,branch:default:any/artifacts/content/maven"
+    extra["bootstrapRepo"] = bootstrapRepo
 
     repositories {
         mavenLocal()
+        maven {
+            url = uri(bootstrapRepo)
+        }
     }
 
     dependencies {
@@ -23,13 +28,17 @@ apply {
     plugin("kotlin")
 }
 
+val toolingApiVersion = "6.2.2"
+val kotlinVersion: String by extra
+val bootstrapRepo: String by extra
+
 repositories {
     maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
     mavenLocal()
+    maven {
+        url = uri(bootstrapRepo)
+    }
 }
-
-val toolingApiVersion = "6.2.2"
-val kotlinVersion: String by extra
 
 dependencies {
     implementation(kotlin("stdlib"))
