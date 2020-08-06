@@ -40,7 +40,7 @@ dependencies {
 }
 
 application {
-    mainClassName = "RunAllBenchmarksKt"
+    mainClassName = "org.jetbrains.kotlin.build.benchmarks.RunAllBenchmarksKt"
 }
 
 tasks.getByName("run", JavaExec::class) {
@@ -50,5 +50,5 @@ tasks.getByName("run", JavaExec::class) {
 tasks.register("runFast", JavaExec::class) {
     classpath = sourceSets.main.get().runtimeClasspath
     workingDir = File("../../")
-    main = "RunFastBenchmarksKt"
+    main = "org.jetbrains.kotlin.build.benchmarks.RunFastBenchmarksKt"
 }
