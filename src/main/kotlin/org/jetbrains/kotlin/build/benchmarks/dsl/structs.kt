@@ -9,10 +9,11 @@ import java.io.File
 
 class Suite(
     val scenarios: Array<Scenario>,
-    val defaultTasks: Array<Tasks>
+    val defaultTasks: Array<Tasks>,
+    val changeableFiles: Array<ChangeableFile>
 ) {
-    fun copy(scenarios: Array<Scenario> = this.scenarios, defaultTasks: Array<Tasks> = this.defaultTasks) =
-        Suite(scenarios, defaultTasks)
+    fun copy(scenarios: Array<Scenario> = this.scenarios, defaultTasks: Array<Tasks> = this.defaultTasks, changeableFiles: Array<ChangeableFile> = this.changeableFiles) =
+        Suite(scenarios, defaultTasks, changeableFiles)
 }
 
 class Scenario(
@@ -46,16 +47,13 @@ data class FileChange(val changeableFile: ChangeableFile, val typeOfChange: Type
         get() = changeableFile.changedFile(typeOfChange)
 }
 
-private const val modFilesRootPath = "gradle/benchmarks/src/main/resources/change-files"
+private const val modFilesRootPath = "src/main/resources/change-files"
 
-enum class ChangeableFile(changeFilesDirName: String) {
-    CORE_UTIL_STRINGS("coreUtil/StringsKt"),
-    CORE_UTIL_CORE_LIB("coreUtil/CoreLibKt");
-
-    private val changeFilesDir = File(modFilesRootPath, changeFilesDirName)
+class ChangeableFile(projectName: String, changeFilesDirName: String) {
+    private val changeFilesDir = File(File(modFilesRootPath, projectName), changeFilesDirName)
 
     val targetFile by lazy {
-        File(changeFilesDir.resolve("_target-file.txt").readText().trim())
+        changeFilesDir.resolve("_target-file.txt").readText().trim()
     }
 
     /*

@@ -5,12 +5,13 @@
 
 package org.jetbrains.kotlin.build.benchmarks.dsl
 
-fun suite(fn: SuiteBuilder.() -> Unit): Suite =
-    SuiteBuilderImpl().apply(fn).build()
+fun suite(name: String, fn: SuiteBuilder.() -> Unit): Suite =
+    SuiteBuilderImpl(name).apply(fn).build()
 
 interface SuiteBuilder {
     fun scenario(name: String, fn: ScenarioBuilder.() -> Unit)
     fun defaultTasks(vararg tasks: Tasks)
+    fun changeableFile(name: String): ChangeableFile
 }
 
 interface ScenarioBuilder {
@@ -38,9 +39,10 @@ interface StepWithFileChangesBuilder : StepBuilder {
     fun changeFile(changeableFile: ChangeableFile, typeOfChange: TypeOfChange)
 }
 
-class SuiteBuilderImpl : SuiteBuilder {
+class SuiteBuilderImpl(private val projectName: String) : SuiteBuilder {
     private var defaultTasks = arrayOf<Tasks>()
     private val scenarios = arrayListOf<Scenario>()
+    private val changeableFiles = arrayListOf<ChangeableFile>()
 
     override fun scenario(name: String, fn: ScenarioBuilder.() -> Unit) {
         scenarios.add(ScenarioBuilderImpl(name = name).apply(fn).build())
@@ -50,8 +52,14 @@ class SuiteBuilderImpl : SuiteBuilder {
         defaultTasks = arrayOf(*tasks)
     }
 
+    override fun changeableFile(name: String): ChangeableFile {
+        val changeableFile = ChangeableFile(projectName, name)
+        changeableFiles.add(changeableFile)
+        return changeableFile
+    }
+
     fun build() =
-        Suite(scenarios = scenarios.toTypedArray(), defaultTasks = defaultTasks)
+        Suite(scenarios = scenarios.toTypedArray(), defaultTasks = defaultTasks, changeableFiles = changeableFiles.toTypedArray())
 }
 
 class ScenarioBuilderImpl(private val name: String) : ScenarioBuilder {

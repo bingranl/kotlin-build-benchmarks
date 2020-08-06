@@ -26,11 +26,11 @@ import java.io.ObjectInputStream
 import java.util.*
 import kotlin.collections.LinkedHashMap
 
-class GradleBenchmarkEvaluator : AbstractBenchmarkEvaluator() {
+class GradleBenchmarkEvaluator(private val projectPath: File) : AbstractBenchmarkEvaluator(projectPath) {
     private lateinit var c: ProjectConnection
 
     override fun runBenchmarks(benchmarks: Suite) {
-        val root = File(".").absoluteFile
+        val root = projectPath.absoluteFile
         c = GradleConnector.newConnector().forProjectDirectory(root).connect()
 
         try {

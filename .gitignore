@@ -4,4 +4,4 @@ local_test/
 sandbox/
 .idea/
 .gradle/
-build/
+/build/

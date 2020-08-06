@@ -11,13 +11,13 @@ import org.jetbrains.kotlin.build.benchmarks.utils.stackTraceString
 import java.io.File
 import java.util.ArrayDeque
 
-class ChangesApplier {
+class ChangesApplier(private val projectPath: File) {
     private val appliedChanges = ArrayDeque<ApplicableChanges>()
 
     fun applyStepChanges(step: Step): Boolean {
         return when (step) {
             is Step.SimpleStep -> {
-                val applicable = ApplicableChanges(changes = step.fileChanges)
+                val applicable = ApplicableChanges(projectPath, changes = step.fileChanges)
                 if (applicable.apply()) {
                     appliedChanges.addFirst(applicable)
                     true
@@ -46,12 +46,12 @@ class ChangesApplier {
         get() = appliedChanges.isNotEmpty()
 }
 
-private class ApplicableChanges(private val changes: Array<FileChange>) {
+private class ApplicableChanges(private val projectPath: File, private val changes: Array<FileChange>) {
     private val prevVersions = arrayListOf<Pair<File, ByteArray?>>()
 
     fun apply(): Boolean {
         for (change in changes) {
-            val file = change.changeableFile.targetFile
+            val file = File(projectPath, change.changeableFile.targetFile)
             val prevContent = if (file.exists()) file.readBytes() else null
 
             try {

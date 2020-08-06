@@ -43,12 +43,7 @@ application {
     mainClassName = "org.jetbrains.kotlin.build.benchmarks.RunAllBenchmarksKt"
 }
 
-tasks.getByName("run", JavaExec::class) {
-    workingDir = File("../../")
-}
-
 tasks.register("runFast", JavaExec::class) {
     classpath = sourceSets.main.get().runtimeClasspath
-    workingDir = File("../../")
     main = "org.jetbrains.kotlin.build.benchmarks.RunFastBenchmarksKt"
 }

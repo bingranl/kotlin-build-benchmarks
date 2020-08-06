@@ -3,8 +3,6 @@ package org.jetbrains.kotlin.build.benchmarks/*
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-import org.jetbrains.kotlin.build.benchmarks.DEFAULT_TASKS
-import org.jetbrains.kotlin.build.benchmarks.mainImpl
 import org.jetbrains.kotlin.build.benchmarks.scenarios.fastBenchmarks
 
 fun main() {

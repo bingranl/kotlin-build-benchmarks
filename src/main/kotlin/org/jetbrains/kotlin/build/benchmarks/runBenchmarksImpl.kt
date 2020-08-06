@@ -14,7 +14,7 @@ import java.util.*
 internal val DEFAULT_TASKS = arrayOf(Tasks.DIST, Tasks.COMPILER_TEST_CLASSES, Tasks.IDEA_TEST_CLASSES)
 
 internal fun mainImpl(benchmarks: Suite) {
-    val eval = GradleBenchmarkEvaluator().apply {
+    val eval = GradleBenchmarkEvaluator(File("../kotlin")).apply {
         addListener(SimpleLoggingBenchmarkListener())
         val dir = File("build/benchmark-results").apply { mkdirs() }
 

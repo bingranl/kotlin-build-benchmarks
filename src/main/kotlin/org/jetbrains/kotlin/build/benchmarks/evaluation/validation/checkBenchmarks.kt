@@ -5,33 +5,35 @@
 
 package org.jetbrains.kotlin.build.benchmarks.evaluation.validation
 
-import org.jetbrains.kotlin.build.benchmarks.dsl.ChangeableFile
 import org.jetbrains.kotlin.build.benchmarks.dsl.FileChange
 import org.jetbrains.kotlin.build.benchmarks.dsl.Step
 import org.jetbrains.kotlin.build.benchmarks.dsl.Suite
+import java.io.File
 import java.lang.IllegalStateException
 
-fun checkBenchmarks(benchmarks: Suite) {
+fun checkBenchmarks(projectPath: File, benchmarks: Suite) {
     val errors = arrayListOf<String>()
 
-    ChangeableFile.values().flatMapTo(LinkedHashSet()) {
-        listOf(it.targetFile, it.expectedInitialFile)
+    val changeableFiles = benchmarks.changeableFiles
+    changeableFiles.flatMapTo(LinkedHashSet<File>()) {
+        listOf(File(projectPath, it.targetFile), it.expectedInitialFile)
     }.forEach {
         if (!it.isFile) {
             errors.add("File does not exist: $it")
         }
     }
 
-    for (changeableFile in ChangeableFile.values()) {
-        if (!changeableFile.expectedInitialFile.isFile || !changeableFile.targetFile.isFile) {
+    for (changeableFile in changeableFiles) {
+        val targetFile = File(projectPath, changeableFile.targetFile)
+        if (!changeableFile.expectedInitialFile.isFile || !targetFile.isFile) {
             continue
         }
 
         val expectedInitialContent = changeableFile.expectedInitialFile.readText().trim().normalizeLineSeparators()
-        val actualInitialContent = changeableFile.targetFile.readText().trim().normalizeLineSeparators()
+        val actualInitialContent = targetFile.readText().trim().normalizeLineSeparators()
 
         if (expectedInitialContent != actualInitialContent) {
-            changeableFile.targetFile.copyTo(changeableFile.expectedInitialFile, overwrite = true)
+            targetFile.copyTo(changeableFile.expectedInitialFile, overwrite = true)
             errors.add(
                 "Content of ${changeableFile.targetFile} does not match ${changeableFile.expectedInitialFile}." +
                         "\n${changeableFile.expectedInitialFile} was updated. Please review the changes and commit."

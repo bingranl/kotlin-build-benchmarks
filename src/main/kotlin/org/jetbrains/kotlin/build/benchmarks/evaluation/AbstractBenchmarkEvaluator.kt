@@ -13,9 +13,10 @@ import org.jetbrains.kotlin.build.benchmarks.evaluation.results.ScenarioResult
 import org.jetbrains.kotlin.build.benchmarks.evaluation.results.StepResult
 import org.jetbrains.kotlin.build.benchmarks.evaluation.validation.checkBenchmarks
 import org.jetbrains.kotlin.build.benchmarks.utils.Either
+import java.io.File
 
-abstract class AbstractBenchmarkEvaluator {
-    private val changesApplier = ChangesApplier()
+abstract class AbstractBenchmarkEvaluator(private val projectPath: File) {
+    private val changesApplier = ChangesApplier(projectPath)
     protected val progress = CompositeBenchmarksProgressListener()
 
     fun addListener(progressListener: BenchmarksProgressListener) {
@@ -23,7 +24,7 @@ abstract class AbstractBenchmarkEvaluator {
     }
 
     open fun runBenchmarks(benchmarks: Suite) {
-        checkBenchmarks(benchmarks)
+        checkBenchmarks(projectPath, benchmarks)
 
         try {
             scenario@ for (scenario in benchmarks.scenarios) {
