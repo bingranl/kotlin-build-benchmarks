@@ -14,10 +14,12 @@ import org.jetbrains.kotlin.build.benchmarks.evaluation.results.StepResult
 import org.jetbrains.kotlin.build.benchmarks.evaluation.validation.checkBenchmarks
 import org.jetbrains.kotlin.build.benchmarks.utils.Either
 import java.io.File
+import java.io.OutputStream
 
 abstract class AbstractBenchmarkEvaluator(private val projectPath: File) {
     private val changesApplier = ChangesApplier(projectPath)
     protected val progress = CompositeBenchmarksProgressListener()
+    var buildLogsOutputStreamProvider: ((scenarioName: String, stepName: String, scenarioIteration: UInt) -> OutputStream)? = null
 
     fun addListener(progressListener: BenchmarksProgressListener) {
         progress.add(progressListener)
@@ -27,13 +29,17 @@ abstract class AbstractBenchmarkEvaluator(private val projectPath: File) {
         checkBenchmarks(projectPath, benchmarks)
 
         try {
+            var prevScenario: Scenario? = null
+            var prevIteration: UInt = 1U
             scenario@ for (scenario in benchmarks.scenarios) {
-                for (i in (1U..scenario.repeat.toUInt())) {
-                    cleanup(benchmarks, scenario)
+                for (scenarioIteration in (1U..scenario.repeat.toUInt())) {
+                    if (prevScenario != null) {
+                        cleanup(benchmarks, scenario, prevScenario, prevIteration)
+                    }
                     progress.scenarioStarted(scenario)
 
                     val stepsResults = arrayListOf<StepResult>()
-                    for (step in scenario.steps) {
+                    for ((stepIndex, step) in scenario.steps.withIndex()) {
                         progress.stepStarted(step)
 
                         if (!changesApplier.applyStepChanges(step)) {
@@ -41,7 +47,8 @@ abstract class AbstractBenchmarkEvaluator(private val projectPath: File) {
                             continue@scenario
                         }
                         val stepResult = try {
-                            runBuild(benchmarks, scenario, step)
+                            val buildLogsOutputStream = getBuildLogsOutputStream(scenario.name, (stepIndex + 1).toString(), scenarioIteration)
+                            runBuild(benchmarks, scenario, step, buildLogsOutputStream)
                         } catch (e: Exception) {
                             Either.Failure(e)
                         }
@@ -60,6 +67,8 @@ abstract class AbstractBenchmarkEvaluator(private val projectPath: File) {
                     }
 
                     progress.scenarioFinished(scenario, Either.Success(ScenarioResult(stepsResults)))
+                    prevScenario = scenario
+                    prevIteration = scenarioIteration
                 }
             }
             progress.allFinished()
@@ -68,7 +77,7 @@ abstract class AbstractBenchmarkEvaluator(private val projectPath: File) {
         }
     }
 
-    private fun cleanup(benchmarks: Suite, scenario: Scenario) {
+    private fun cleanup(benchmarks: Suite, scenario: Scenario, prevScenario: Scenario, prevIteration: UInt) {
         if (!changesApplier.hasAppliedChanges) return
 
         progress.cleanupStarted()
@@ -77,13 +86,19 @@ abstract class AbstractBenchmarkEvaluator(private val projectPath: File) {
         val tasksToBeRun = scenario.steps.flatMapTo(LinkedHashSet()) { (it.tasks ?: benchmarks.defaultTasks).toList() }
         tasksToBeRun.remove(Tasks.CLEAN)
 
+        val buildLogsOutputStream = getBuildLogsOutputStream(prevScenario.name, "cleanup", prevIteration)
+
         if (tasksToBeRun.isNotEmpty()) {
-            runBuild(tasksToBeRun.toTypedArray())
+            runBuild(tasksToBeRun.toTypedArray(), buildLogsOutputStream)
         }
         progress.cleanupFinished()
     }
 
-    protected abstract fun runBuild(suite: Suite, scenario: Scenario, step: Step): Either<StepResult>
-    protected abstract fun runBuild(tasksToExecute: Array<Tasks>, isExpectedToFail: Boolean = false): Either<BuildResult>
+    private fun getBuildLogsOutputStream(scenarioName: String, step: String, iteration: UInt): OutputStream? {
+        return buildLogsOutputStreamProvider?.let { it(scenarioName, step, iteration) }
+    }
+
+    protected abstract fun runBuild(suite: Suite, scenario: Scenario, step: Step, buildLogsOutputStream: OutputStream?): Either<StepResult>
+    protected abstract fun runBuild(tasksToExecute: Array<Tasks>, buildLogsOutputStream: OutputStream?, isExpectedToFail: Boolean = false): Either<BuildResult>
 }
 

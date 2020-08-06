@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.build.benchmarks.dsl.Tasks
 import org.jetbrains.kotlin.build.benchmarks.evaluation.gradle.GradleBenchmarkEvaluator
 import org.jetbrains.kotlin.build.benchmarks.evaluation.results.CompactResultListener
 import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -21,6 +22,12 @@ internal fun mainImpl(benchmarks: Suite) {
         val time = SimpleDateFormat("yyyy-MM-dd-hh-mm-ss").format(Calendar.getInstance().time)
         val compactResultFile = dir.resolve("$time.result.bin")
         addListener(CompactResultListener(compactResultFile))
+
+        buildLogsOutputStreamProvider = { scenario, step, repeat ->
+            val file = File(dir, "$time-build-$scenario-#$repeat-$step.log")
+            file.parentFile.mkdirs()
+            FileOutputStream(file)
+        }
     }
     eval.runBenchmarks(benchmarks)
 }

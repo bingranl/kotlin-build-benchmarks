@@ -23,6 +23,7 @@ import org.gradle.tooling.ProjectConnection
 import org.jetbrains.kotlin.gradle.internal.build.metrics.GradleBuildMetricsData
 import java.io.File
 import java.io.ObjectInputStream
+import java.io.OutputStream
 import java.util.*
 import kotlin.collections.LinkedHashMap
 
@@ -40,13 +41,13 @@ class GradleBenchmarkEvaluator(private val projectPath: File) : AbstractBenchmar
         }
     }
 
-    override fun runBuild(suite: Suite, scenario: Scenario, step: Step): Either<StepResult> {
+    override fun runBuild(suite: Suite, scenario: Scenario, step: Step, buildLogsOutputStream: OutputStream?): Either<StepResult> {
         val tasksToExecute = step.tasks ?: suite.defaultTasks
-        return runBuild(tasksToExecute, step.isExpectedToFail)
+        return runBuild(tasksToExecute, buildLogsOutputStream, step.isExpectedToFail)
             .mapSuccess { metrics -> StepResult(step, metrics) }
     }
 
-    override fun runBuild(tasksToExecute: Array<Tasks>, isExpectedToFail: Boolean): Either<BuildResult> {
+    override fun runBuild(tasksToExecute: Array<Tasks>, buildLogsOutputStream: OutputStream?, isExpectedToFail: Boolean): Either<BuildResult> {
         val tasksPaths = tasksToExecute.map { it.path }.toTypedArray()
 
         val gradleBuildListener = BuildRecordingProgressListener()
@@ -57,7 +58,10 @@ class GradleBenchmarkEvaluator(private val projectPath: File) : AbstractBenchmar
             c.newBuild()
                 .forTasks(*tasksPaths)
                 .addArguments("-Pkotlin.internal.single.build.metrics.file=${metricsFile.absolutePath}")
-                .addProgressListener(gradleBuildListener).run()
+                .setStandardOutput(buildLogsOutputStream)
+                .setStandardError(buildLogsOutputStream)
+                .addProgressListener(gradleBuildListener)
+                .run()
         } catch (e: Exception) {
             if (!isExpectedToFail) {
                 return Either.Failure(e)
