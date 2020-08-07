@@ -89,6 +89,7 @@ enum class Tasks(private val customTask: String? = null) {
     DIST,
     COMPILER_TEST_CLASSES(":compiler:testClasses"),
     IDEA_TEST_CLASSES(":idea:testClasses"),
+    KOTLIN_GRADLE_PLUGIN_COMPILE_JAVA(":kotlin-gradle-plugin:compileJava"),
     IDEA_PLUGIN,
     INSTALL,
     CLASSES,

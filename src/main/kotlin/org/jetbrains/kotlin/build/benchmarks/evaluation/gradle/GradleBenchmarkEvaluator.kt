@@ -58,6 +58,7 @@ class GradleBenchmarkEvaluator(private val projectPath: File) : AbstractBenchmar
             c.newBuild()
                 .forTasks(*tasksPaths)
                 .addArguments("-Pkotlin.internal.single.build.metrics.file=${metricsFile.absolutePath}")
+//                .addArguments("-Dorg.gradle.workers.max=8 --parallel --watch-fs") // TODO: make it configurable
                 .setStandardOutput(buildLogsOutputStream)
                 .setStandardError(buildLogsOutputStream)
                 .addProgressListener(gradleBuildListener)

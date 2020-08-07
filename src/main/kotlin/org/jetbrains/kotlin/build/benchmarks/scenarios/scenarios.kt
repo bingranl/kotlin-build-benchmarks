@@ -13,9 +13,9 @@ fun fastBenchmarks(projectName: String, vararg defaultTasksToRun: Tasks) =
 
 fun allBenchmarks(projectName: String, vararg defaultTasksToRun: Tasks) =
         mapOf(
-            "kotlin" to {
-                kotlinBenchmarks(*defaultTasksToRun)
-            }
+            "kotlin" to { kotlinBenchmarks(*defaultTasksToRun) },
+            "gavra0" to { gavra0Benchmarks(*defaultTasksToRun) },
+            "space" to { spaceBenchmarks(*defaultTasksToRun) }
     )[projectName]?.let { it() } ?: throw IllegalStateException("Test suit for $projectName is not defined!")
 
 
@@ -76,3 +76,39 @@ fun kotlinBenchmarks(vararg defaultTasksToRun: Tasks) =
             }
         }
     }
+
+fun spaceBenchmarks(vararg defaultTasksToRun: Tasks) =
+        suite("space") {
+            defaultTasks(*defaultTasksToRun)
+        }
+
+fun gavra0Benchmarks(vararg defaultTasksToRun: Tasks) =
+        suite("gavra0") {
+            defaultTasks(*defaultTasksToRun)
+
+            val stdlibFileTreeWalk = changeableFile("stdlib/FileTreeWalkKt")
+            val coreDescriptorsClassDescriptorsBase = changeableFile("coreDescriptors/ClassDescriptorBaseJava")
+
+            scenario("build") {
+                step {
+                    doNotMeasure()
+                    runTasks(Tasks.KOTLIN_GRADLE_PLUGIN_COMPILE_JAVA)
+                }
+            }
+
+            scenario("abi change to stdlib") {
+                step {
+                    changeFile(stdlibFileTreeWalk, TypeOfChange.ADD_PUBLIC_FUNCTION)
+                    runTasks(Tasks.KOTLIN_GRADLE_PLUGIN_COMPILE_JAVA)
+                }
+                repeat = 10U
+            }
+
+            scenario("abi change to core.descriptors") {
+                step {
+                    changeFile(coreDescriptorsClassDescriptorsBase, TypeOfChange.ADD_PUBLIC_FUNCTION)
+                    runTasks(Tasks.DIST, Tasks.IDEA_PLUGIN)
+                }
+                repeat = 10U
+            }
+        }
