@@ -9,7 +9,7 @@ class TeamCityMetricReporter : AbstractBenchmarksProgressListener() {
     override fun scenarioFinished(scenario: Scenario, result: Either<ScenarioResult>) {
         result.mapSuccess { scenarioResult ->
             for ((stepIndex, stepResult) in scenarioResult.stepResults.withIndex()) {
-                if (!stepResult.step.isMeasured) return
+                if (!stepResult.step.isMeasured) continue
                 var prefix = "";
                 stepResult.buildResult.timeMetrics.walkTimeMetrics(
                         fn = { metric, time ->
