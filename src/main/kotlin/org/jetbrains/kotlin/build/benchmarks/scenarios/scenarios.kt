@@ -12,10 +12,10 @@ fun fastBenchmarks(projectName: String, vararg defaultTasksToRun: Tasks) =
     }
 
 fun allBenchmarks(projectName: String, vararg defaultTasksToRun: Tasks) =
-        mapOf(
-            "kotlin" to { kotlinBenchmarks(*defaultTasksToRun) },
-            "gavra0" to { gavra0Benchmarks(*defaultTasksToRun) },
-            "space" to { spaceBenchmarks(*defaultTasksToRun) }
+    mapOf(
+        "kotlin" to { kotlinBenchmarks(*defaultTasksToRun) },
+        "gavra0" to { gavra0Benchmarks(*defaultTasksToRun) },
+        "space" to { spaceBenchmarks(*defaultTasksToRun) }
     )[projectName]?.let { it() } ?: throw IllegalStateException("Test suit for $projectName is not defined!")
 
 
@@ -25,6 +25,7 @@ fun kotlinBenchmarks(vararg defaultTasksToRun: Tasks) =
         val coreUtilCoreLib = changeableFile("coreUtil/CoreLibKt")
 
         defaultTasks(*defaultTasksToRun)
+        defaultJdk = System.getProperty("JDK_8")
 
         scenario("clean build") {
             expectSlowBuild("clean build")
@@ -83,32 +84,34 @@ fun spaceBenchmarks(vararg defaultTasksToRun: Tasks) =
         }
 
 fun gavra0Benchmarks(vararg defaultTasksToRun: Tasks) =
-        suite("gavra0") {
-            defaultTasks(*defaultTasksToRun)
+    suite("gavra0") {
+        defaultTasks(*defaultTasksToRun)
+        defaultArguments("-Dorg.gradle.workers.max=8", "--parallel", "--watch-fs")
+        defaultJdk = System.getProperty("JDK_8")
 
-            val stdlibFileTreeWalk = changeableFile("stdlib/FileTreeWalkKt")
-            val coreDescriptorsClassDescriptorsBase = changeableFile("coreDescriptors/ClassDescriptorBaseJava")
+        val stdlibFileTreeWalk = changeableFile("stdlib/FileTreeWalkKt")
+        val coreDescriptorsClassDescriptorsBase = changeableFile("coreDescriptors/ClassDescriptorBaseJava")
 
-            scenario("build") {
-                step {
-                    doNotMeasure()
-                    runTasks(Tasks.KOTLIN_GRADLE_PLUGIN_COMPILE_JAVA)
-                }
-            }
-
-            scenario("abi change to stdlib") {
-                step {
-                    changeFile(stdlibFileTreeWalk, TypeOfChange.ADD_PUBLIC_FUNCTION)
-                    runTasks(Tasks.KOTLIN_GRADLE_PLUGIN_COMPILE_JAVA)
-                }
-                repeat = 10U
-            }
-
-            scenario("abi change to core.descriptors") {
-                step {
-                    changeFile(coreDescriptorsClassDescriptorsBase, TypeOfChange.ADD_PUBLIC_FUNCTION)
-                    runTasks(Tasks.DIST, Tasks.IDEA_PLUGIN)
-                }
-                repeat = 10U
+        scenario("build") {
+            step {
+                doNotMeasure()
+                runTasks(Tasks.KOTLIN_GRADLE_PLUGIN_COMPILE_JAVA)
             }
         }
+
+        scenario("abi change to stdlib") {
+            step {
+                changeFile(stdlibFileTreeWalk, TypeOfChange.ADD_PUBLIC_FUNCTION)
+                runTasks(Tasks.KOTLIN_GRADLE_PLUGIN_COMPILE_JAVA)
+            }
+            repeat = 10U
+        }
+
+        scenario("abi change to core.descriptors") {
+            step {
+                changeFile(coreDescriptorsClassDescriptorsBase, TypeOfChange.ADD_PUBLIC_FUNCTION)
+                runTasks(Tasks.DIST, Tasks.IDEA_PLUGIN)
+            }
+            repeat = 10U
+        }
+    }

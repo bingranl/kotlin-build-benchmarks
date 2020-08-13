@@ -5,20 +5,26 @@
 
 package org.jetbrains.kotlin.build.benchmarks.dsl
 
+import java.io.File
+
 fun suite(name: String, fn: SuiteBuilder.() -> Unit): Suite =
     SuiteBuilderImpl(name).apply(fn).build()
 
 interface SuiteBuilder {
     fun scenario(name: String, fn: ScenarioBuilder.() -> Unit)
     fun defaultTasks(vararg tasks: Tasks)
+    var defaultJdk: String?
     fun changeableFile(name: String): ChangeableFile
+    fun defaultArguments(vararg arguments: String)
 }
 
 interface ScenarioBuilder {
     fun step(fn: StepWithFileChangesBuilder.() -> Unit)
     fun revertLastStep(fn: StepBuilder.() -> Unit)
     fun expectSlowBuild(reason: String)
+    fun arguments(vararg arguments: String)
     var repeat: UByte
+    var jdk: String?
 }
 
 interface StepBuilder {
@@ -41,8 +47,10 @@ interface StepWithFileChangesBuilder : StepBuilder {
 
 class SuiteBuilderImpl(private val projectName: String) : SuiteBuilder {
     private var defaultTasks = arrayOf<Tasks>()
+    override var defaultJdk: String? = null
     private val scenarios = arrayListOf<Scenario>()
     private val changeableFiles = arrayListOf<ChangeableFile>()
+    private val defaultArguments = arrayListOf<String>()
 
     override fun scenario(name: String, fn: ScenarioBuilder.() -> Unit) {
         scenarios.add(ScenarioBuilderImpl(name = name).apply(fn).build())
@@ -58,16 +66,29 @@ class SuiteBuilderImpl(private val projectName: String) : SuiteBuilder {
         return changeableFile
     }
 
+    override fun defaultArguments(vararg arguments: String) {
+        defaultArguments.addAll(arguments)
+    }
+
     fun build() =
-        Suite(scenarios = scenarios.toTypedArray(), defaultTasks = defaultTasks, changeableFiles = changeableFiles.toTypedArray())
+        Suite(scenarios = scenarios.toTypedArray(), defaultTasks = defaultTasks, changeableFiles = changeableFiles.toTypedArray(), defaultJdk = defaultJdk?.let { File(it) }, defaultArguments = defaultArguments.toTypedArray())
 }
 
 class ScenarioBuilderImpl(private val name: String) : ScenarioBuilder {
     override var repeat: UByte = 1U
+    override var jdk: String? = null
+    private var arguments: MutableList<String>? = null
 
     private var expectedSlowBuildReason: String? = null
     override fun expectSlowBuild(reason: String) {
         expectedSlowBuildReason = reason
+    }
+
+    override fun arguments(vararg arguments: String) {
+        if (this.arguments == null) {
+            this.arguments = arrayListOf()
+        }
+        this.arguments!!.addAll(arguments)
     }
 
     private val steps = arrayListOf<Step>()
@@ -85,7 +106,9 @@ class ScenarioBuilderImpl(private val name: String) : ScenarioBuilder {
             name = name,
             steps = steps.toTypedArray(),
             expectedSlowBuildReason = expectedSlowBuildReason,
-            repeat = repeat
+            repeat = repeat,
+            jdk = jdk?.let { File(it) },
+            arguments = arguments?.toTypedArray()
         )
 }
 

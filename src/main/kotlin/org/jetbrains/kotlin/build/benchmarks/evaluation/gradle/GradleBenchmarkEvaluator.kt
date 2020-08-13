@@ -43,11 +43,13 @@ class GradleBenchmarkEvaluator(private val projectPath: File) : AbstractBenchmar
 
     override fun runBuild(suite: Suite, scenario: Scenario, step: Step, buildLogsOutputStream: OutputStream?): Either<StepResult> {
         val tasksToExecute = step.tasks ?: suite.defaultTasks
-        return runBuild(tasksToExecute, buildLogsOutputStream, step.isExpectedToFail)
+        val jdk = scenario.jdk ?: suite.defaultJdk
+        val arguments = scenario.arguments ?: suite.defaultArguments
+        return runBuild(jdk, tasksToExecute, buildLogsOutputStream, step.isExpectedToFail, arguments)
             .mapSuccess { metrics -> StepResult(step, metrics) }
     }
 
-    override fun runBuild(tasksToExecute: Array<Tasks>, buildLogsOutputStream: OutputStream?, isExpectedToFail: Boolean): Either<BuildResult> {
+    override fun runBuild(jdk: File?, tasksToExecute: Array<Tasks>, buildLogsOutputStream: OutputStream?, isExpectedToFail: Boolean, arguments: Array<String>): Either<BuildResult> {
         val tasksPaths = tasksToExecute.map { it.path }.toTypedArray()
 
         val gradleBuildListener = BuildRecordingProgressListener()
@@ -57,8 +59,8 @@ class GradleBenchmarkEvaluator(private val projectPath: File) : AbstractBenchmar
             progress.taskExecutionStarted(tasksToExecute)
             c.newBuild()
                 .forTasks(*tasksPaths)
-                .addArguments("-Pkotlin.internal.single.build.metrics.file=${metricsFile.absolutePath}")
-//                .addArguments("-Dorg.gradle.workers.max=8 --parallel --watch-fs") // TODO: make it configurable
+                .withArguments("-Pkotlin.internal.single.build.metrics.file=${metricsFile.absolutePath}", *arguments)
+                .setJavaHome(jdk)
                 .setStandardOutput(buildLogsOutputStream)
                 .setStandardError(buildLogsOutputStream)
                 .addProgressListener(gradleBuildListener)

@@ -88,8 +88,11 @@ abstract class AbstractBenchmarkEvaluator(private val projectPath: File) {
 
         val buildLogsOutputStream = getBuildLogsOutputStream(prevScenario.name, "cleanup", prevIteration)
 
+        val jdk = scenario.jdk ?: benchmarks.defaultJdk
+        val arguments = scenario.arguments ?: benchmarks.defaultArguments
+
         if (tasksToBeRun.isNotEmpty()) {
-            runBuild(tasksToBeRun.toTypedArray(), buildLogsOutputStream)
+            runBuild(jdk, tasksToBeRun.toTypedArray(), buildLogsOutputStream, arguments = arguments)
         }
         progress.cleanupFinished()
     }
@@ -99,6 +102,6 @@ abstract class AbstractBenchmarkEvaluator(private val projectPath: File) {
     }
 
     protected abstract fun runBuild(suite: Suite, scenario: Scenario, step: Step, buildLogsOutputStream: OutputStream?): Either<StepResult>
-    protected abstract fun runBuild(tasksToExecute: Array<Tasks>, buildLogsOutputStream: OutputStream?, isExpectedToFail: Boolean = false): Either<BuildResult>
+    protected abstract fun runBuild(jdk: File?, tasksToExecute: Array<Tasks>, buildLogsOutputStream: OutputStream?, isExpectedToFail: Boolean = false, arguments: Array<String> = emptyArray()): Either<BuildResult>
 }
 

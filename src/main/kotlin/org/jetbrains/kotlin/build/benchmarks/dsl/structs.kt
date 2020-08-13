@@ -10,17 +10,25 @@ import java.io.File
 class Suite(
     val scenarios: Array<Scenario>,
     val defaultTasks: Array<Tasks>,
-    val changeableFiles: Array<ChangeableFile>
+    val changeableFiles: Array<ChangeableFile>,
+    val defaultJdk: File?,
+    val defaultArguments: Array<String>
 ) {
-    fun copy(scenarios: Array<Scenario> = this.scenarios, defaultTasks: Array<Tasks> = this.defaultTasks, changeableFiles: Array<ChangeableFile> = this.changeableFiles) =
-        Suite(scenarios, defaultTasks, changeableFiles)
+    fun copy(scenarios: Array<Scenario> = this.scenarios,
+             defaultTasks: Array<Tasks> = this.defaultTasks,
+             changeableFiles: Array<ChangeableFile> = this.changeableFiles,
+             defaultJdk: File? = this.defaultJdk,
+             defaultArguments: Array<String> = this.defaultArguments) =
+        Suite(scenarios, defaultTasks, changeableFiles, defaultJdk, defaultArguments)
 }
 
 class Scenario(
     val expectedSlowBuildReason: String? = null,
     val name: String,
     val steps: Array<Step>,
-    val repeat: UByte
+    val repeat: UByte,
+    val jdk: File?,
+    val arguments: Array<String>?
 )
 
 sealed class Step {
@@ -85,6 +93,7 @@ enum class TypeOfChange {
 @Suppress("unused")
 enum class Tasks(private val customTask: String? = null) {
     CLEAN,
+    BUILD,
     CORE_UTIL_CLASSES(":core:util.runtime:classes"),
     DIST,
     COMPILER_TEST_CLASSES(":compiler:testClasses"),

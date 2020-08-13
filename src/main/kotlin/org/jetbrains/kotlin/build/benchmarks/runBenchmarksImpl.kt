@@ -31,7 +31,7 @@ internal fun mainImpl(benchmarksProvider: (projectName: String, defaultTasksToRu
         }
         val dir = File("build/benchmark-results").apply { mkdirs() }
 
-        val time = SimpleDateFormat("yyyy-MM-dd-hh-mm-ss").format(Calendar.getInstance().time)
+        val time = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(Calendar.getInstance().time)
         val compactResultFile = dir.resolve("$time.result.bin")
         addListener(CompactResultListener(compactResultFile))
 

@@ -7,7 +7,7 @@ plugins {
 }
 
 buildscript {
-    val kotlinVersion = System.getenv("BOOTSTRAP_VERSION") ?: "1.4.20-dev-2975"
+    val kotlinVersion = System.getenv("BOOTSTRAP_VERSION") ?: "1.4.255-SNAPSHOT"
     extra["kotlinVersion"] = kotlinVersion
     val bootstrapRepo = "https://buildserver.labs.intellij.net/guestAuth/app/rest/builds/buildType:(id:Kotlin_KotlinDev_CompilerDistAndMavenArtifacts),number:$kotlinVersion,branch:default:any/artifacts/content/maven"
     extra["bootstrapRepo"] = bootstrapRepo
