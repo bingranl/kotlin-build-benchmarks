@@ -14,7 +14,7 @@ class TeamCityMetricReporter : AbstractBenchmarksProgressListener() {
                 stepResult.buildResult.timeMetrics.walkTimeMetrics(
                         fn = { metric, time ->
                             val statisticKey = specialCharactersToUnderscore("${scenario.name}.${stepIndex + 1}.$prefix$metric")
-                            reportStatistics(statisticKey, time.asNs.toString())
+                            reportStatistics(statisticKey, time.asMs.toString())
                         },
                         onEnter = {
                             prefix += "$it."
