@@ -7,8 +7,8 @@ package org.jetbrains.kotlin.build.benchmarks.dsl
 
 import java.io.File
 
-fun suite(name: String, fn: SuiteBuilder.() -> Unit): Suite =
-    SuiteBuilderImpl(name).apply(fn).build()
+fun suite(fn: SuiteBuilder.() -> Unit): Suite =
+    SuiteBuilderImpl().apply(fn).build()
 
 interface SuiteBuilder {
     fun scenario(name: String, fn: ScenarioBuilder.() -> Unit)
@@ -45,7 +45,7 @@ interface StepWithFileChangesBuilder : StepBuilder {
     fun changeFile(changeableFile: ChangeableFile, typeOfChange: TypeOfChange)
 }
 
-class SuiteBuilderImpl(private val projectName: String) : SuiteBuilder {
+class SuiteBuilderImpl : SuiteBuilder {
     private var defaultTasks = arrayOf<Tasks>()
     override var defaultJdk: String? = null
     private val scenarios = arrayListOf<Scenario>()
@@ -61,7 +61,7 @@ class SuiteBuilderImpl(private val projectName: String) : SuiteBuilder {
     }
 
     override fun changeableFile(name: String): ChangeableFile {
-        val changeableFile = ChangeableFile(projectName, name)
+        val changeableFile = ChangeableFile(name)
         changeableFiles.add(changeableFile)
         return changeableFile
     }

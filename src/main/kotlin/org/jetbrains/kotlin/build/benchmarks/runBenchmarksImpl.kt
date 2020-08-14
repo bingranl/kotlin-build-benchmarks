@@ -17,11 +17,9 @@ import java.util.*
 
 internal val DEFAULT_TASKS = arrayOf(Tasks.DIST, Tasks.COMPILER_TEST_CLASSES, Tasks.IDEA_TEST_CLASSES)
 
-internal fun mainImpl(benchmarksProvider: (projectName: String, defaultTasksToRun: Array<Tasks>) -> Suite) {
+@Suppress("unused")
+fun mainImpl(benchmarks: Suite, testedProjectPath: String) {
     val isTeamCityRun = System.getenv("TEAMCITY_VERSION") != null
-    val testedProjectPath = System.getenv("TESTED_PROJECT_PATH") ?: "../kotlin/"
-    val testedProjectName = System.getenv("TESTED_PROJECT_NAME") ?: "kotlin"
-    val benchmarks = benchmarksProvider(testedProjectName, DEFAULT_TASKS)
 
     val eval = GradleBenchmarkEvaluator(File(testedProjectPath)).apply {
         if (isTeamCityRun) {

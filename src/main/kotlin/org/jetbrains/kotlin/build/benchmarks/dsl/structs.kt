@@ -57,8 +57,8 @@ data class FileChange(val changeableFile: ChangeableFile, val typeOfChange: Type
 
 private const val modFilesRootPath = "src/main/resources/change-files"
 
-class ChangeableFile(projectName: String, changeFilesDirName: String) {
-    private val changeFilesDir = File(File(modFilesRootPath, projectName), changeFilesDirName)
+class ChangeableFile(changeFilesDirName: String) {
+    private val changeFilesDir = File(modFilesRootPath, changeFilesDirName)
 
     val targetFile by lazy {
         changeFilesDir.resolve("_target-file.txt").readText().trim()
@@ -80,6 +80,7 @@ class ChangeableFile(projectName: String, changeFilesDirName: String) {
         changeFilesDir.resolve("${change.name.constantCaseToCamelCase()}.benchmark")
 }
 
+@Suppress("unused")
 enum class TypeOfChange {
     ADD_PRIVATE_FUNCTION,
     ADD_PUBLIC_FUNCTION,
