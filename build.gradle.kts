@@ -4,6 +4,7 @@ version = "1.0-SNAPSHOT"
 plugins {
     java
     maven
+    id("com.github.johnrengelman.shadow") version "5.1.0"
 }
 
 buildscript {
