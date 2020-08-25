@@ -93,6 +93,7 @@ enum class TypeOfChange {
 
 @Suppress("unused")
 enum class Tasks(private val customTask: String? = null) {
+    ASSEMBLE,
     CLEAN,
     BUILD,
     CORE_UTIL_CLASSES(":core:util.runtime:classes"),

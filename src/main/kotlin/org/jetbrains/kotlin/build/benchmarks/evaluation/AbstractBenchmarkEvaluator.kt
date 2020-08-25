@@ -57,6 +57,7 @@ abstract class AbstractBenchmarkEvaluator(private val projectPath: File) {
                             is Either.Failure -> {
                                 System.err.println("Aborting scenario: step failed")
                                 progress.stepFinished(step, stepResult)
+                                progress.scenarioFinished(scenario, Either.Failure("Step ${stepIndex + 1} failed. See logs in artifacts for more information."))
                                 continue@scenario
                             }
                             is Either.Success<StepResult> -> {
