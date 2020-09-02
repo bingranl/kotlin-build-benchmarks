@@ -3,7 +3,7 @@ version = "1.0-SNAPSHOT"
 
 plugins {
     java
-    maven
+    `maven-publish`
     id("com.github.johnrengelman.shadow") version "5.1.0"
 }
 
@@ -47,4 +47,17 @@ dependencies {
     implementation("org.gradle:gradle-tooling-api:$toolingApiVersion")
     // The tooling API need an SLF4J implementation available at runtime, replace this with any other implementation
     runtimeOnly("org.slf4j:slf4j-simple:1.7.10")
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
 }
