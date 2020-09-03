@@ -6,17 +6,8 @@ import org.jetbrains.kotlin.build.benchmarks.evaluation.AbstractBenchmarksProgre
 import org.jetbrains.kotlin.build.benchmarks.utils.Either
 
 class TeamCityMetricReporter : AbstractBenchmarksProgressListener() {
-    private lateinit var currentScenario: Scenario
-    private var currentScenarioIteration: Int = 0
-
     override fun scenarioStarted(scenario: Scenario) {
-        if (::currentScenario.isInitialized && currentScenario == scenario) {
-            currentScenarioIteration++
-        } else {
-            currentScenarioIteration = 0
-        }
-        currentScenario = scenario
-        startTest("${scenario.name} (iteration $currentScenarioIteration)")
+        startTest(scenario.name)
     }
 
     override fun stepFinished(step: Step, result: Either<StepResult>) {
@@ -30,31 +21,45 @@ class TeamCityMetricReporter : AbstractBenchmarksProgressListener() {
         }
     }
 
-    override fun scenarioFinished(scenario: Scenario, result: Either<ScenarioResult>) {
+    override fun scenarioFinished(scenario: Scenario, result: Either<List<ScenarioResult>>) {
         when (result) {
             is Either.Success -> {
-                for ((stepIndex, stepResult) in result.value.stepResults.withIndex()) {
-                    if (!stepResult.step.isMeasured) continue
-                    var prefix = "";
-                    stepResult.buildResult.timeMetrics.walkTimeMetrics(
-                        fn = { metric, time ->
-                            val statisticKey = specialCharactersToUnderscore("${scenario.name}.iter-$currentScenarioIteration.step-${stepIndex + 1}.$prefix$metric")
-                            reportStatistics(statisticKey, time.asMs.toString())
-                        },
-                        onEnter = {
-                            prefix += "$it."
-                        },
-                        onExit = {
-                            prefix = prefix.substring(0, prefix.length - (it.length + 1))
-                        }
-                    )
+                for ((scenarioRun, scenarioResult) in result.value.withIndex()) {
+                    for ((stepIndex, stepResult) in scenarioResult.stepResults.withIndex()) {
+                        if (!stepResult.step.isMeasured) continue
+                        var prefix = "";
+                        stepResult.buildResult.timeMetrics.walkTimeMetrics(
+                            fn = { metric, time ->
+                                val fullMetricName = "$prefix$metric"
+                                if (scenario.trackedMetrics?.contains(fullMetricName) == true) {
+                                    val statisticKey =
+                                        specialCharactersToUnderscore("env.br.${scenario.name}.iter-${scenarioRun + 1}.step-${stepIndex + 1}.$fullMetricName")
+                                    reportStatistics(statisticKey, time.asMs.toString())
+                                }
+                            },
+                            onEnter = {
+                                prefix += "$it."
+                            },
+                            onExit = {
+                                prefix = prefix.substring(0, prefix.length - (it.length + 1))
+                            }
+                        )
+                    }
                 }
             }
             is Either.Failure -> {
-                failTest("${scenario.name} (iteration $currentScenarioIteration)", result.reason)
+                failTest(scenario.name, result.reason)
             }
         }
-        finishTest("${scenario.name} (iteration $currentScenarioIteration)")
+        finishTest(scenario.name)
+    }
+
+    override fun cleanupStarted() {
+        reportMessage("Cleanup after last scenario is started")
+    }
+
+    override fun cleanupFinished() {
+        reportMessage("Cleanup after last scenario is finished")
     }
 }
 
@@ -64,12 +69,12 @@ fun specialCharactersToUnderscore(key: String): String {
 }
 
 fun escapeTcCharacters(message: String) = message
-        .replace("|", "||")
-        .replace("\n", "|n")
-        .replace("\r", "|r")
-        .replace("'", "|'")
-        .replace("[", "|[")
-        .replace("]", "|]")
+    .replace("|", "||")
+    .replace("\n", "|n")
+    .replace("\r", "|r")
+    .replace("'", "|'")
+    .replace("[", "|[")
+    .replace("]", "|]")
 
 fun reportStatistics(key: String, value: String) {
     println("##teamcity[buildStatisticValue key='${escapeTcCharacters(key)}' value='${escapeTcCharacters(value)}']")

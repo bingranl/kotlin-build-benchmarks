@@ -16,7 +16,11 @@ abstract class MetricsContainer<T> : MetricsHolder<T>() {
     fun getMetric(metric: String): MetricsHolder<T>? = metricsValues[metric]
     fun findValue(metric: String): T? {
         var result: T? = null
-        walkTimeMetrics(fn = { name, value -> if (name == metric) { result = value } })
+        walkTimeMetrics(fn = { name, value ->
+            if (name == metric) {
+                result = value
+            }
+        })
         return result
     }
 

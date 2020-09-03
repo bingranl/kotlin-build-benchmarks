@@ -23,6 +23,7 @@ interface ScenarioBuilder {
     fun revertLastStep(fn: StepBuilder.() -> Unit)
     fun expectSlowBuild(reason: String)
     fun arguments(vararg arguments: String)
+    fun trackedMetrics(trackedMetrics: Set<String>?)
     var repeat: UByte
     var jdk: String?
 }
@@ -77,6 +78,7 @@ class SuiteBuilderImpl : SuiteBuilder {
 class ScenarioBuilderImpl(private val name: String) : ScenarioBuilder {
     override var repeat: UByte = 1U
     override var jdk: String? = null
+    private var trackedMetrics: Set<String>? = null
     private var arguments: MutableList<String>? = null
 
     private var expectedSlowBuildReason: String? = null
@@ -89,6 +91,13 @@ class ScenarioBuilderImpl(private val name: String) : ScenarioBuilder {
             this.arguments = arrayListOf()
         }
         this.arguments!!.addAll(arguments)
+    }
+
+    override fun trackedMetrics(trackedMetrics: Set<String>?) {
+        this.trackedMetrics = trackedMetrics?.toMutableSet()?.apply {
+            add("GRADLE_BUILD")
+            add("GRADLE_BUILD.CONFIGURATION")
+        }
     }
 
     private val steps = arrayListOf<Step>()
@@ -108,7 +117,8 @@ class ScenarioBuilderImpl(private val name: String) : ScenarioBuilder {
             expectedSlowBuildReason = expectedSlowBuildReason,
             repeat = repeat,
             jdk = jdk?.let { File(it) },
-            arguments = arguments?.toTypedArray()
+            arguments = arguments?.toTypedArray(),
+            trackedMetrics = trackedMetrics
         )
 }
 

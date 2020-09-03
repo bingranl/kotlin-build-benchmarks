@@ -27,7 +27,7 @@ class CompositeBenchmarksProgressListener : BenchmarksProgressListener {
         forEachListener { it.scenarioStarted(scenario) }
     }
 
-    override fun scenarioFinished(scenario: Scenario, result: Either<ScenarioResult>) {
+    override fun scenarioFinished(scenario: Scenario, result: Either<List<ScenarioResult>>) {
         forEachListener { it.scenarioFinished(scenario, result) }
     }
 
