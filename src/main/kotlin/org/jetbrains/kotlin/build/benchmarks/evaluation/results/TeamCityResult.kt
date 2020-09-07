@@ -78,7 +78,7 @@ fun escapeTcCharacters(message: String) = message
     .replace("]", "|]")
 
 fun setParameter(key: String, value: String) {
-    println("##teamcity[setParameter key='${escapeTcCharacters(key)}' value='${escapeTcCharacters(value)}']")
+    println("##teamcity[setParameter name='${escapeTcCharacters(key)}' value='${escapeTcCharacters(value)}']")
 }
 
 fun reportStatistics(key: String, value: String) {
