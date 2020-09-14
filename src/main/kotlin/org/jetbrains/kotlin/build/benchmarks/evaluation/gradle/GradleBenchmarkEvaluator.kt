@@ -148,6 +148,7 @@ class GradleBenchmarkEvaluator(private val projectPath: File) : AbstractBenchmar
 
         timeMetrics[GradlePhasesMetrics.COMPILATION_TASKS] = compilationTime
         timeMetrics[GradlePhasesMetrics.NON_COMPILATION_TASKS] = nonCompilationTime
+        timeMetrics[GradlePhasesMetrics.KOTLIN_COMPILE_BUILD_SRC] = taskTimes.getOrElse(":buildSrc:compileKotlin") { TimeInterval(0) }
     }
 
     private val compileTasksTypes = setOf("JavaCompile", "KotlinCompile", "KotlinCompileCommon", "Kotlin2JsCompile")
