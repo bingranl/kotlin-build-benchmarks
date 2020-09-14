@@ -11,12 +11,14 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
+import org.gradle.tooling.events.test.TestStartEvent
 import java.util.LinkedHashMap
 
 internal class BuildRecordingProgressListener : ProgressListener {
     private lateinit var firstEvent: ProgressEvent
     private lateinit var lastEvent: ProgressEvent
     private lateinit var lastProjectConfigurationFinishEvent: ProjectConfigurationFinishEvent
+    private var firstTestStartEvent: TestStartEvent? = null
     private var mySnapshotBeforeTaskTimeMs = 0L
     private var mySnapshotAfterTaskTimeMs = 0L
     private var myJavaInstrumentationTimeMs = 0L
@@ -39,6 +41,9 @@ internal class BuildRecordingProgressListener : ProgressListener {
     val javaInstrumentationTimeMs: TimeInterval
         get() = TimeInterval.ms(myJavaInstrumentationTimeMs)
 
+    val timeToRunFirstTest: TimeInterval?
+        get() = firstTestStartEvent?.let { TimeInterval.ms(it.eventTime - firstEvent.eventTime) }
+
     val taskTimes = LinkedHashMap<String, TimeInterval>()
 
     private var isFirst = true
@@ -49,6 +54,10 @@ internal class BuildRecordingProgressListener : ProgressListener {
             firstEvent = event
         }
         lastEvent = event
+
+        if (event is TestStartEvent && firstTestStartEvent == null) {
+            firstTestStartEvent = event
+        }
 
         if (event is ProjectConfigurationFinishEvent) {
             lastProjectConfigurationFinishEvent = event

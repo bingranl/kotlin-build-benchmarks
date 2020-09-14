@@ -80,6 +80,7 @@ class GradleBenchmarkEvaluator(private val projectPath: File) : AbstractBenchmar
             gradleBuildListener.snapshotBeforeTaskTime + gradleBuildListener.snapshotAfterTaskTime
         timeMetrics[GradlePhasesMetrics.UP_TO_DATE_CHECKS_BEFORE_TASK] = gradleBuildListener.snapshotBeforeTaskTime
         timeMetrics[GradlePhasesMetrics.UP_TO_DATE_CHECKS_AFTER_TASK] = gradleBuildListener.snapshotAfterTaskTime
+        gradleBuildListener.timeToRunFirstTest?.let {timeMetrics[GradlePhasesMetrics.FIRST_TEST_EXECUTION_WAITING] = it }
 
         if (metricsFile.exists() && metricsFile.length() > 0) {
             try {
