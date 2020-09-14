@@ -105,7 +105,7 @@ enum class Tasks(private val customTask: String? = null) {
     IDEA_TEST_CLASSES(":idea:testClasses"),
     KOTLIN_GRADLE_PLUGIN_COMPILE_JAVA(":kotlin-gradle-plugin:compileJava"),
     KOTLIN_GRADLE_PLUGIN_TEST(":kotlin-gradle-plugin:test"),
-    LIBRARIES_KTOR_TEST(":libraries:libraries-ktor:test"),
+    PIPELINES_TEST(":plugins:pipelines:pipelines-config:pipelines-config-api:test"),
     IDEA_PLUGIN,
     INSTALL,
     CLASSES,
