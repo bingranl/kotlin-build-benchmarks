@@ -29,6 +29,7 @@ import kotlin.collections.LinkedHashMap
 
 class GradleBenchmarkEvaluator(private val projectPath: File) : AbstractBenchmarkEvaluator(projectPath) {
     private lateinit var c: ProjectConnection
+    private val heapDumpPath = System.getenv("HEAP_DUMP_PATH")
 
     override fun runBenchmarks(benchmarks: Suite) {
         val root = projectPath.absoluteFile
@@ -54,12 +55,18 @@ class GradleBenchmarkEvaluator(private val projectPath: File) : AbstractBenchmar
 
         val gradleBuildListener = BuildRecordingProgressListener()
         val metricsFile = File.createTempFile("kt-benchmarks-", "-metrics").apply { deleteOnExit() }
+        val jvmArguments = mutableListOf<String>()
+        if (!heapDumpPath.isNullOrEmpty()) {
+            jvmArguments += "-XX:HeapDumpPath=${heapDumpPath}"
+            jvmArguments += "-XX:HeapDumpOnOutOfMemoryError"
+        }
 
         try {
             progress.taskExecutionStarted(tasksToExecute)
             c.newBuild()
                 .forTasks(*tasksPaths)
                 .withArguments("-Pkotlin.internal.single.build.metrics.file=${metricsFile.absolutePath}", *arguments)
+                .setJvmArguments(jvmArguments)
                 .setJavaHome(jdk)
                 .setStandardOutput(buildLogsOutputStream)
                 .setStandardError(buildLogsOutputStream)
