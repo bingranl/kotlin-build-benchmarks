@@ -58,7 +58,7 @@ class GradleBenchmarkEvaluator(private val projectPath: File) : AbstractBenchmar
         val jvmArguments = mutableListOf<String>()
         if (!heapDumpPath.isNullOrEmpty()) {
             jvmArguments += "-XX:HeapDumpPath=${heapDumpPath}"
-            jvmArguments += "-XX:HeapDumpOnOutOfMemoryError"
+            jvmArguments += "-XX:+HeapDumpOnOutOfMemoryError"
         }
 
         try {
