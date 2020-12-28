@@ -34,7 +34,7 @@ class CompactScenarioResult(val scenarioName: String) : Serializable {
 class CompactResultListener(private val targetFile: File) : AbstractBenchmarksProgressListener() {
     private val myResults = CompactResults()
 
-    override fun scenarioFinished(scenario: Scenario, result: Either<List<ScenarioResult>>) {
+    override fun scenarioFinished(scenario: Scenario, result: Either<ScenarioResult>) {
         result.mapSuccess { scenarioResult ->
             val compactResult = CompactScenarioResult(scenario.name)
             var allT = TimeInterval(0)
@@ -42,17 +42,15 @@ class CompactResultListener(private val targetFile: File) : AbstractBenchmarksPr
             var javaT = TimeInterval(0)
             var kotlinT = TimeInterval(0)
             var otherT = TimeInterval(0)
-            scenarioResult.forEach {
-                it.stepResults.forEach { stepResult ->
-                    if (stepResult.step.isMeasured) {
-                        val metrics = stepResult.buildResult.timeMetrics
-                        allT += metrics.findValue("GRADLE_BUILD") ?: TimeInterval(0)
-                        gradleT += metrics.findValue("CONFIGURATION") ?: TimeInterval(0)
-                        gradleT += metrics.findValue("UP_TO_DATE_CHECKS") ?: TimeInterval(0)
-                        javaT += metrics.findValue("JavaCompile") ?: TimeInterval(0)
-                        kotlinT += metrics.findValue("KotlinCompile") ?: TimeInterval(0)
-                        otherT += metrics.findValue("NON_COMPILATION_TASKS") ?: TimeInterval(0)
-                    }
+            scenarioResult.stepResults.forEach { stepResult ->
+                if (stepResult.step.isMeasured) {
+                    val metrics = stepResult.buildResult.timeMetrics
+                    allT += metrics.findValue("GRADLE_BUILD") ?: TimeInterval(0)
+                    gradleT += metrics.findValue("CONFIGURATION") ?: TimeInterval(0)
+                    gradleT += metrics.findValue("UP_TO_DATE_CHECKS") ?: TimeInterval(0)
+                    javaT += metrics.findValue("JavaCompile") ?: TimeInterval(0)
+                    kotlinT += metrics.findValue("KotlinCompile") ?: TimeInterval(0)
+                    otherT += metrics.findValue("NON_COMPILATION_TASKS") ?: TimeInterval(0)
                 }
             }
             compactResult.categoryResultsNs["Whole build"] = allT.asNs

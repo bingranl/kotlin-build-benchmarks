@@ -44,7 +44,7 @@ class SimpleLoggingBenchmarkListener : AbstractBenchmarksProgressListener() {
         p("Scenario '${scenario.name}'")
     }
 
-    override fun scenarioFinished(scenario: Scenario, result: Either<List<ScenarioResult>>) {
+    override fun scenarioFinished(scenario: Scenario, result: Either<ScenarioResult>) {
         p("==============")
     }
 

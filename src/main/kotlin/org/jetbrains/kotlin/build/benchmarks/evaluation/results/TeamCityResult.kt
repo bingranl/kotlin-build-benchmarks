@@ -4,10 +4,20 @@ import org.jetbrains.kotlin.build.benchmarks.dsl.Scenario
 import org.jetbrains.kotlin.build.benchmarks.dsl.Step
 import org.jetbrains.kotlin.build.benchmarks.evaluation.AbstractBenchmarksProgressListener
 import org.jetbrains.kotlin.build.benchmarks.utils.Either
+import org.jetbrains.kotlin.build.benchmarks.utils.mapSuccess
 
 class TeamCityMetricReporter : AbstractBenchmarksProgressListener() {
+    private var currentScenario: Scenario? = null
+    private var currentScenarioRun: Int = 0
+
     override fun scenarioStarted(scenario: Scenario) {
         startTest(scenario.name)
+        if (currentScenario == scenario) {
+            currentScenarioRun++
+        } else {
+            currentScenarioRun = 0
+            currentScenario = scenario
+        }
     }
 
     override fun stepFinished(step: Step, result: Either<StepResult>) {
@@ -21,18 +31,18 @@ class TeamCityMetricReporter : AbstractBenchmarksProgressListener() {
         }
     }
 
-    override fun scenarioFinished(scenario: Scenario, result: Either<List<ScenarioResult>>) {
+    override fun scenarioFinished(scenario: Scenario, result: Either<ScenarioResult>) {
         when (result) {
             is Either.Success -> {
-                for ((scenarioRun, scenarioResult) in result.value.withIndex()) {
-                    for ((stepIndex, stepResult) in scenarioResult.stepResults.withIndex()) {
+                result.mapSuccess {
+                    for ((stepIndex, stepResult) in it.stepResults.withIndex()) {
                         if (!stepResult.step.isMeasured) continue
                         var prefix = "";
                         stepResult.buildResult.timeMetrics.walkTimeMetrics(
                             fn = { metric, time ->
                                 val fullMetricName = "$prefix$metric"
                                 val statisticKey =
-                                    specialCharactersToUnderscore("${scenario.name}.iter-${scenarioRun + 1}.step-${stepIndex + 1}.$fullMetricName")
+                                    specialCharactersToUnderscore("${scenario.name}.iter-${currentScenarioRun + 1}.step-${stepIndex + 1}.$fullMetricName")
                                 if (scenario.trackedMetrics?.contains(fullMetricName) != false) {
                                     setParameter("env.br.$statisticKey", time.asMs.toString())
                                 }

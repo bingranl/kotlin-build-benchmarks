@@ -32,7 +32,6 @@ abstract class AbstractBenchmarkEvaluator(private val projectPath: File) {
             var prevScenario: Scenario? = null
             var prevIteration: UInt = 1U
             scenario@ for (scenario in benchmarks.scenarios) {
-                val scenarioResults = arrayListOf<ScenarioResult>()
                 for (scenarioIteration in (1U..scenario.repeat.toUInt())) {
                     if (prevScenario != null) {
                         cleanup(benchmarks, scenario, prevScenario, prevIteration)
@@ -68,11 +67,10 @@ abstract class AbstractBenchmarkEvaluator(private val projectPath: File) {
                         }
                     }
 
-                    scenarioResults.add(ScenarioResult(stepsResults))
                     prevScenario = scenario
                     prevIteration = scenarioIteration
+                    progress.scenarioFinished(scenario, Either.Success(ScenarioResult(stepsResults)))
                 }
-                progress.scenarioFinished(scenario, Either.Success(scenarioResults))
             }
             progress.allFinished()
         } finally {

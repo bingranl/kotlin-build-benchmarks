@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.build.benchmarks.utils.Either
 
 abstract class AbstractBenchmarksProgressListener : BenchmarksProgressListener {
     override fun scenarioStarted(scenario: Scenario) {}
-    override fun scenarioFinished(scenario: Scenario, result: Either<List<ScenarioResult>>) {}
+    override fun scenarioFinished(scenario: Scenario, result: Either<ScenarioResult>) {}
     override fun stepStarted(step: Step) {}
     override fun stepFinished(step: Step, result: Either<StepResult>) {}
     override fun allFinished() {}

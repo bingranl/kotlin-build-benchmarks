@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.build.benchmarks.utils.Either
 
 interface BenchmarksProgressListener {
     fun scenarioStarted(scenario: Scenario)
-    fun scenarioFinished(scenario: Scenario, result: Either<List<ScenarioResult>>)
+    fun scenarioFinished(scenario: Scenario, result: Either<ScenarioResult>)
     fun stepStarted(step: Step)
     fun stepFinished(step: Step, result: Either<StepResult>)
     fun taskExecutionStarted(tasks: Array<Tasks>)
