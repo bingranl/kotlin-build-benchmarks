@@ -59,7 +59,12 @@ data class FileChange(val changeableFile: ChangeableFile, val typeOfChange: Type
 private const val modFilesRootPath = "src/main/resources/change-files"
 
 class ChangeableFile(changeFilesDirName: String) {
-    private val changeFilesDir = File(modFilesRootPath, changeFilesDirName)
+    private val changeFilesDir =
+        if (!File(changeFilesDirName).isAbsolute) {
+            File(modFilesRootPath, changeFilesDirName)
+        } else {
+            File(changeFilesDirName)
+        }
 
     val targetFile by lazy {
         changeFilesDir.resolve("_target-file.txt").readText().trim()
@@ -113,7 +118,10 @@ enum class Tasks(private val customTask: String? = null) {
     IDEA_PLUGIN,
     INSTALL,
     CLASSES,
-    TEST_CLASSES;
+    TEST_CLASSES,
+    // The main application of android-benchmark-project is module21:module02
+    ANDROID_COMPILE(":module21:module02:compileDebugJavaWithJavac")
+    ;
 
     val path: String
         get() = customTask ?: name.constantCaseToCamelCase()
