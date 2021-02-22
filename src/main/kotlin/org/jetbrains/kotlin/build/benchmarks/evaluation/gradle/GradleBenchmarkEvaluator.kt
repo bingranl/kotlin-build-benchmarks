@@ -33,7 +33,7 @@ class GradleBenchmarkEvaluator(private val projectPath: File) : AbstractBenchmar
 
     override fun runBenchmarks(benchmarks: Suite) {
         val root = projectPath.absoluteFile
-        c = GradleConnector.newConnector().forProjectDirectory(root).connect()
+        c = GradleConnector.newConnector().useGradleVersion("6.8.2").forProjectDirectory(root).connect()
 
         try {
             super.runBenchmarks(benchmarks)
