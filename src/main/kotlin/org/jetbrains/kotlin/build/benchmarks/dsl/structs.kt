@@ -96,6 +96,7 @@ enum class TypeOfChange {
     INTRODUCE_COMPILE_ERROR,
     FIX_COMPILE_ERROR,
     CHANGE_ANDROID_RESOURCE,
+    CHANGE_PUBLIC_FUNCTION_BODY,
 }
 
 @Suppress("unused")
